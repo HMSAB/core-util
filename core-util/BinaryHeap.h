@@ -193,8 +193,11 @@ public:
                 return false;
             _swap(i, --_elements); // element i will be destroyed by 'pop_back()' below
             _array.pop_back();
-            if (_elements > 1)
-                _propagate_down(i);
+            if ((_elements > 1) && (_elements != i)) {
+                if (!_propagate_up(i)) {
+                    _propagate_down(i);
+                }
+            }
             return true;
         }
     }
@@ -233,20 +236,26 @@ private:
         return (i - 1) / 2;
     }
 
-    void _propagate_up(size_t node) {
+    bool _propagate_up(size_t node) {
         // This is called when a node is added in the last position in the heap
         // We might need to move the node up towards the parent until the heap property
         // is satisfied
         size_t parent = _parent(node);
+        bool moved = false;
         // Move the node up until it satisfies the heap property
         while ((node > 0) && _comparator(_array[node], _array[parent])) {
             _swap(node, parent);
             node = parent;
             parent = _parent(node);
+            if (node != parent) {
+                moved = true;
+            }
         }
+        return moved;
     }
 
-    void _propagate_down(size_t node) {
+    bool _propagate_down(size_t node) {
+        bool moved = false;
         // This is called when an existing node is removed
         // When that happens, it is replaced with the node at the last position in the heap
         // Since that might make the heap inconsistent, we need to move the node down if its
@@ -268,8 +277,12 @@ private:
                 break;
             }
             _swap(node, temp);
+            if (node != temp) {
+                moved = true;
+            }
             node = temp;
         }
+        return moved;
     }
 
     void _swap(size_t pos1, size_t pos2) {
